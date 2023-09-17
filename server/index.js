@@ -3,9 +3,11 @@ const express = require("express"); // Import Express.js to create a web server
 // const mongoose = require("mongoose"); // Import Mongoose for MongoDB interaction
 const cors = require("cors"); // Import Cors for handling Cross-Origin Resource Sharing
 // const UserModel = require("./model/Users"); // Import the User model from the models/users.js file
+const https = require("https");
 
 // Create an instance of the Express.js application
 const app = express();
+
 
 // Middleware setup:
 app.use(express.json()); // Parse JSON data from incoming requests
@@ -46,26 +48,45 @@ app.use(cors()); // Enable Cross-Origin Resource Sharing to allow requests from 
 //         .catch((err) => res.json(err)); // Send an error response if there's a problem
 // });
 
-function replaceSpaces(inputString) {
-    var result = "";
-    
-    for (var i = 0; i < inputString.length; i++) {
-      if (inputString[i] === " ") {
-        result += "%20";
-      } else {
-        result += inputString[i];
-      }
-    }
-    
-    return result;
-  }
+
+
+let latitude = 0;
+let longitude = 0;
+const api_key = process.env.GOOGLE_API_KEY
+console.log(api_key);
 
 app.post("/address", (req, res) => {
     let addressData = req.body.address.address;
-    console.log(`${req.body.address.address}`);
-    // console.log(`ReplaceAddress: ${replaceSpaces(addressData)}`)
     console.log(`AddressReplace: ${addressData.replace(/ /g, "%20")}`);
-})
+    formattedAddress = addressData.replace(/ /g, "%20")
+    const geocodeURL = `https://maps.googleapis.com/maps/api/geocode/json?address=${formattedAddress}&key=${api_key}`
+    console.log(geocodeURL);
+    https.get(geocodeURL, (response) => {
+      let data = "";
+      console.log(`Status Code: ${response.statusCode}`)
+
+      response.on("data", (d) => {
+        data += d;
+        console.log(data);
+        const geoData = JSON.parse(d)
+      })
+      .on("end", () => {
+        try {
+          const geocodeData = JSON.parse(data);
+          if(geocodeData.results && geocodeData.results.length > 0){
+            console.log(geocodeData.results[0].geometry.location.lat);
+            console.log("^^^ LAT");
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      })
+      .on("error", (err) => {
+        console.log(err);
+      });
+    })
+});
+
 
 // Start the web server and listen on port 3001
 app.listen(3001, () => {

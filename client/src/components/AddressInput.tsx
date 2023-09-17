@@ -31,7 +31,7 @@ function AddressInput() {
     
     <div className="input-container">
       <form onSubmit={handleSubmit}>
-        <input onChange={handleChange}  type="text" name="address" placeholder="Insert Address" className="address-input" />
+        <input onChange={handleChange}  type="text" name="address" placeholder="Enter Address" className="address-input" />
         <button type="submit" className="submit-btn" >Submit</button>
       </form>
     </div>
